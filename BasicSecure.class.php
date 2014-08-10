@@ -62,6 +62,7 @@
                     ) {
                         header('WWW-Authenticate: Basic realm="Private Server"');
                         header('HTTP/1.0 401 Unauthorized');
+                        echo file_get_contents(CORE . '/error.inc.php');
                         exit(0);
                     }
                 }
