@@ -48,8 +48,7 @@
          */
         protected static function _check()
         {
-            $config = \Plugin\Config::retrieve();
-            $config = $config['TurtlePHP-BasicSecurePlugin'];
+            $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
             if ($config['secure'] === true) {;
                 if (!isset($_GET[$config['bypass']])) {
                     if (
