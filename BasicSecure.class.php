@@ -40,31 +40,38 @@
         protected static $_initiated = false;
 
         /**
-         * _check
+         * _secure
          * 
          * @access protected
          * @static
          * @return void
          */
-        protected static function _check()
+        protected static function _secure()
         {
             $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
-            if ($config['secure'] === true) {;
+            if ($config['secure'] === true) {
                 if (!isset($_GET[$config['bypass']])) {
-                    if (
-                        !isset($_SERVER['PHP_AUTH_USER'])
-                        ||
-                        !(
-                            isset($config['credentials'][$_SERVER['PHP_AUTH_USER']])
-                            && $config['credentials'][$_SERVER['PHP_AUTH_USER']] === $_SERVER['PHP_AUTH_PW']
-                        )
-                    ) {
-                        header(
-                            'WWW-Authenticate: Basic realm="Private Server"'
-                        );
-                        header('HTTP/1.0 401 Unauthorized');
-                        echo file_get_contents(CORE . '/error.inc.php');
-                        exit(0);
+                    $matched = preg_replace(
+                        $config['exclude'],
+                        'matched',
+                        $_SERVER['REQUEST_URI']
+                    );
+                    if ($matched !== 'matched') {
+                        if (
+                            !isset($_SERVER['PHP_AUTH_USER'])
+                            ||
+                            !(
+                                isset($config['credentials'][$_SERVER['PHP_AUTH_USER']])
+                                && $config['credentials'][$_SERVER['PHP_AUTH_USER']] === $_SERVER['PHP_AUTH_PW']
+                            )
+                        ) {
+                            header(
+                                'WWW-Authenticate: Basic realm="Private Server"'
+                            );
+                            header('HTTP/1.0 401 Unauthorized');
+                            echo file_get_contents(CORE . '/error.inc.php');
+                            exit(0);
+                        }
                     }
                 }
             }
@@ -82,7 +89,7 @@
             if (is_null(self::$_initiated) === false) {
                 self::$_initiated = true;
                 require_once self::$_configPath;
-                self::_check();
+                self::_secure();
             }
         }
 
