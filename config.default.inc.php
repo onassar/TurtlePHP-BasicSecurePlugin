@@ -15,6 +15,8 @@
         'secure' => false,
         'credentials' => array(
             'username' => 'password'
+        ),
+        'exclude' => array(
         )
     );
 
