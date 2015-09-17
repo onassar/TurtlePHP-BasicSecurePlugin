@@ -54,7 +54,8 @@
                     $matched = preg_replace(
                         $config['exclude'],
                         'matched',
-                        $_SERVER['REQUEST_URI']
+                        // $_SERVER['REQUEST_URI']
+                        $_SERVER['SCRIPT_URL']
                     );
                     if ($matched !== 'matched') {
                         if (
