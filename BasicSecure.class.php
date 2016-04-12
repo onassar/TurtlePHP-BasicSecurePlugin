@@ -87,7 +87,7 @@
          */
         public static function init()
         {
-            if (is_null(self::$_initiated) === false) {
+            if (self::$_initiated === false) {
                 self::$_initiated = true;
                 require_once self::$_configPath;
                 self::_secure();
