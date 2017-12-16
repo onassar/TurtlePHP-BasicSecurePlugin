@@ -24,8 +24,8 @@
         /**
          * _configPath
          *
-         * @var    string
-         * @access protected
+         * @var     string
+         * @access  protected
          * @static
          */
         protected static $_configPath = 'config.default.inc.php';
@@ -33,8 +33,8 @@
         /**
          * _initiated
          *
-         * @var    boolean
-         * @access protected
+         * @var     boolean
+         * @access  protected
          * @static
          */
         protected static $_initiated = false;
@@ -42,15 +42,15 @@
         /**
          * _secure
          * 
-         * @access protected
+         * @access  protected
          * @static
-         * @return void
+         * @return  void
          */
         protected static function _secure()
         {
             $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
             if ($config['secure'] === true) {
-                if (!isset($_GET[$config['bypass']])) {
+                if (isset($_GET[$config['bypass']]) === false) {
                     $matched = preg_replace(
                         $config['exclude'],
                         'matched',
@@ -59,12 +59,12 @@
                     );
                     if ($matched !== 'matched') {
                         if (
-                            !isset($_SERVER['PHP_AUTH_USER'])
+                            isset($_SERVER['PHP_AUTH_USER']) === false
                             ||
-                            !(
-                                isset($config['credentials'][$_SERVER['PHP_AUTH_USER']])
+                            (
+                                isset($config['credentials'][$_SERVER['PHP_AUTH_USER']]) === true
                                 && $config['credentials'][$_SERVER['PHP_AUTH_USER']] === $_SERVER['PHP_AUTH_PW']
-                            )
+                            ) === false
                         ) {
                             header(
                                 'WWW-Authenticate: Basic realm="Private Server"'
@@ -81,9 +81,9 @@
         /**
          * init
          * 
-         * @access public
+         * @access  public
          * @static
-         * @return void
+         * @return  void
          */
         public static function init()
         {
@@ -97,9 +97,9 @@
         /**
          * setConfigPath
          * 
-         * @access public
-         * @param  string $path
-         * @return void
+         * @access  public
+         * @param   string $path
+         * @return  void
          */
         public static function setConfigPath($path)
         {
@@ -111,6 +111,6 @@
     $info = pathinfo(__DIR__);
     $parent = ($info['dirname']) . '/' . ($info['basename']);
     $configPath = ($parent) . '/config.inc.php';
-    if (is_file($configPath)) {
+    if (is_file($configPath) === true) {
         BasicSecure::setConfigPath($configPath);
     }
