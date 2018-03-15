@@ -16,7 +16,7 @@
      * 
      * HTTP basic secure plugin for TurtlePHP
      * 
-     * @author   Oliver Nassar <onassar@gmail.com>
+     * @author  Oliver Nassar <onassar@gmail.com>
      * @abstract
      */
     abstract class BasicSecure
@@ -40,6 +40,31 @@
         protected static $_initiated = false;
 
         /**
+         * _autoSecure
+         * 
+         * @access  protected
+         * @static
+         * @return  void
+         */
+        protected static function _autoSecure()
+        {
+            $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
+            if ($config['secure'] === true) {
+                if (isset($_GET[$config['bypass']]) === false) {
+                    $secureRequest = true;
+                    foreach ($config['exclude'] as $pattern) {
+                        if (preg_match($pattern, $_SERVER['SCRIPT_URL']) > 0) {
+                            $secureRequest = false;
+                        }
+                    }
+                    if ($secureRequest === true) {
+                        self::_secure();
+                    }
+                }
+            }
+        }
+
+        /**
          * _secure
          * 
          * @access  protected
@@ -49,32 +74,18 @@
         protected static function _secure()
         {
             $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
-            if ($config['secure'] === true) {
-                if (isset($_GET[$config['bypass']]) === false) {
-                    $matched = preg_replace(
-                        $config['exclude'],
-                        'matched',
-                        // $_SERVER['REQUEST_URI']
-                        $_SERVER['SCRIPT_URL']
-                    );
-                    if ($matched !== 'matched') {
-                        if (
-                            isset($_SERVER['PHP_AUTH_USER']) === false
-                            ||
-                            (
-                                isset($config['credentials'][$_SERVER['PHP_AUTH_USER']]) === true
-                                && $config['credentials'][$_SERVER['PHP_AUTH_USER']] === $_SERVER['PHP_AUTH_PW']
-                            ) === false
-                        ) {
-                            header(
-                                'WWW-Authenticate: Basic realm="Private Server"'
-                            );
-                            header('HTTP/1.0 401 Unauthorized');
-                            echo file_get_contents(CORE . '/error.inc.php');
-                            exit(0);
-                        }
-                    }
-                }
+            $credentials = $config['credentials'];
+            if (
+                isset($_SERVER['PHP_AUTH_USER']) === false
+                || (
+                    isset($credentials[$_SERVER['PHP_AUTH_USER']]) === true
+                    && $credentials[$_SERVER['PHP_AUTH_USER']] === $_SERVER['PHP_AUTH_PW']
+                ) === false
+            ) {
+                header('WWW-Authenticate: Basic realm="Private Server"');
+                header('HTTP/1.0 401 Unauthorized');
+                echo file_get_contents(CORE . '/error.inc.php');
+                exit(0);
             }
         }
 
@@ -90,8 +101,20 @@
             if (self::$_initiated === false) {
                 self::$_initiated = true;
                 require_once self::$_configPath;
-                self::_secure();
+                self::_autoSecure();
             }
+        }
+
+        /**
+         * secure
+         * 
+         * @access  public
+         * @static
+         * @return  void
+         */
+        public static function secure()
+        {
+            self::_secure();
         }
 
         /**
