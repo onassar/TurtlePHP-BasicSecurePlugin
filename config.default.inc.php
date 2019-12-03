@@ -16,8 +16,7 @@
         'credentials' => array(
             'username' => 'password'
         ),
-        'exclude' => array(
-        )
+        'exclude' => array()
     );
 
     /**
