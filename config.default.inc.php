@@ -7,25 +7,19 @@
     namespace Plugin\BasicSecure;
 
     /**
-     * Config settings
+     * Plugin Config Data
      * 
      */
-    $config = array(
-        'bypass' => 'bypass',
-        'secure' => false,
-        'credentials' => array(
-            'username' => 'password'
-        ),
-        'exclude' => array()
-    );
+    $bypass = 'bypass';
+    $credentials = array();
+    $credentials['username'] = 'password';
+    $exclude = array();
+    $secure = false;
+    $pluginConfigData = compact('bypass', 'credentials', 'exclude', 'secure');
 
     /**
-     * Config storage
+     * Storage
      * 
      */
-
-    // Store
-    \Plugin\Config::add(
-        'TurtlePHP-BasicSecurePlugin',
-        $config
-    );
+    $key = 'TurtlePHP-BasicSecurePlugin';
+    \Plugin\Config::add($key, $pluginConfigData);
