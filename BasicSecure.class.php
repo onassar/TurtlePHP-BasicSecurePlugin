@@ -3,29 +3,22 @@
     // namespace
     namespace Plugin;
 
-    // dependency check
-    if (class_exists('\\Plugin\\Config') === false) {
-        throw new \Exception(
-            '*Config* class required. Please see ' .
-            'https://github.com/onassar/TurtlePHP-ConfigPlugin'
-        );
-    }
-
     /**
      * BasicSecure
      * 
-     * HTTP basic secure plugin for TurtlePHP
+     * HTTP basic secure plugin for TurtlePHP.
      * 
      * @author  Oliver Nassar <onassar@gmail.com>
      * @abstract
+     * @extends Base
      */
-    abstract class BasicSecure
+    abstract class BasicSecure extends Base
     {
         /**
          * _configPath
          *
          * @access  protected
-         * @var     string
+         * @var     string (default: 'config.default.inc.php')
          * @static
          */
         protected static $_configPath = 'config.default.inc.php';
@@ -34,59 +27,169 @@
          * _initiated
          *
          * @access  protected
-         * @var     bool
+         * @var     bool (default: false)
          * @static
          */
         protected static $_initiated = false;
 
         /**
-         * _autoSecure
+         * _autoSecureRequest
          * 
          * @access  protected
          * @static
-         * @return  void
+         * @return  bool
          */
-        protected static function _autoSecure()
+        protected static function _autoSecureRequest(): bool
         {
-            $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
-            if ($config['secure'] === true) {
-                if (isset($_GET[$config['bypass']]) === false) {
-                    $secureRequest = true;
-                    foreach ($config['exclude'] as $pattern) {
-                        if (preg_match($pattern, $_SERVER['SCRIPT_URL']) > 0) {
-                            $secureRequest = false;
-                        }
-                    }
-                    if ($secureRequest === true) {
-                        self::_secure();
-                    }
-                }
+            $configData = static::_getConfigData();
+            if ($configData['secure'] === false) {
+                return false;
             }
+            $isBypassedRequest = static::_isBypassedRequest();
+            if ($isBypassedRequest === true) {
+                return false;
+            }
+            $isBypassedPath = static::_isBypassedPath();
+            if ($isBypassedPath === true) {
+                return false;
+            }
+            static::_secureRequest();
+            return true;
         }
 
         /**
-         * _secure
+         * _checkDependencies
          * 
          * @access  protected
          * @static
          * @return  void
          */
-        protected static function _secure()
+        protected static function _checkDependencies(): void
         {
-            $config = \Plugin\Config::retrieve('TurtlePHP-BasicSecurePlugin');
-            $credentials = $config['credentials'];
-            if (
-                isset($_SERVER['PHP_AUTH_USER']) === false
-                || (
-                    isset($credentials[$_SERVER['PHP_AUTH_USER']]) === true
-                    && $credentials[$_SERVER['PHP_AUTH_USER']] === $_SERVER['PHP_AUTH_PW']
-                ) === false
-            ) {
-                header('WWW-Authenticate: Basic realm="Private Server"');
-                header('HTTP/1.0 401 Unauthorized');
-                echo file_get_contents(CORE . '/error.inc.php');
-                exit(0);
+            static::_checkConfigPluginDependency();
+        }
+
+        /**
+         * _getErrorViewMarkup
+         * 
+         * @access  protected
+         * @static
+         * @return  string
+         */
+        protected static function _getErrorViewMarkup(): string
+        {
+            $errorViewPath = CORE . '/error.inc.php';
+            $content = file_get_contents($errorViewPath);
+            return $content;
+        }
+
+        /**
+         * _isBypassedPath
+         * 
+         * @access  protected
+         * @static
+         * @return  bool
+         */
+        protected static function _isBypassedPath(): bool
+        {
+            $configData = static::_getConfigData();
+            $excludedPatterns = $configData['excludedPatterns'];
+            foreach ($excludedPatterns as $excludedPattern) {
+                if (preg_match($excludedPattern, $_SERVER['SCRIPT_URL']) > 0) {
+                    return true;
+                }
             }
+            return false;
+        }
+
+        /**
+         * _isBypassedRequest
+         * 
+         * @access  protected
+         * @static
+         * @return  bool
+         */
+        protected static function _isBypassedRequest(): bool
+        {
+            $configData = static::_getConfigData();
+            $bypassKey = $configData['bypassKey'];
+            $isBypassedRequest = isset($_GET[$bypassKey]) === true;
+            return $isBypassedRequest;
+        }
+
+        /**
+         * _loadErrorView
+         * 
+         * @access  protected
+         * @static
+         * @return  void
+         */
+        protected static function _loadErrorView(): void
+        {
+            $content = static::_getErrorViewMarkup();
+            echo $content;
+            exit(0);
+        }
+
+        /**
+         * _rejectFailedBasicSecureRequest
+         * 
+         * @access  protected
+         * @static
+         * @return  void
+         */
+        protected static function _rejectFailedBasicSecureRequest(): void
+        {
+            static::_sendBasicSecureHeaders();
+            static::_loadErrorView();
+        }
+
+        /**
+         * _secureRequest
+         * 
+         * @access  protected
+         * @static
+         * @return  bool
+         */
+        protected static function _secureRequest(): bool
+        {
+            $userAgentUsername = $_SERVER['PHP_AUTH_USER'] ?? null;
+            if ($userAgentUsername === null) {
+                static::_rejectFailedBasicSecureRequest();
+                return true;
+            }
+            $userAgentPassword = $_SERVER['PHP_AUTH_PW'] ?? null;
+            if ($userAgentPassword === null) {
+                static::_rejectFailedBasicSecureRequest();
+                return true;
+            }
+            $configData = static::_getConfigData();
+            $credentials = $configData['credentials'];
+            $correspondingPassword = $credentials[$userAgentUsername] ?? null;
+            if ($correspondingPassword === null) {
+                static::_rejectFailedBasicSecureRequest();
+                return true;
+            }
+            if ($correspondingPassword !== $userAgentPassword) {
+                static::_rejectFailedBasicSecureRequest();
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * _sendBasicSecureHeaders
+         * 
+         * @access  protected
+         * @static
+         * @return  void
+         */
+        protected static function _sendBasicSecureHeaders(): void
+        {
+            $value = 'WWW-Authenticate: Basic realm="Private Server"';
+            static::_setHeader($value);
+            $value = 'HTTP/1.0 401 Unauthorized';
+            static::_setHeader($value);
         }
 
         /**
@@ -94,15 +197,16 @@
          * 
          * @access  public
          * @static
-         * @return  void
+         * @return  bool
          */
-        public static function init()
+        public static function init(): bool
         {
-            if (self::$_initiated === false) {
-                self::$_initiated = true;
-                require_once self::$_configPath;
-                self::_autoSecure();
+            if (static::$_initiated === true) {
+                return false;
             }
+            parent::init();
+            static::_autoSecureRequest();
+            return true;
         }
 
         /**
@@ -112,28 +216,14 @@
          * @static
          * @return  void
          */
-        public static function secure()
+        public static function secure(): void
         {
-            self::_secure();
-        }
-
-        /**
-         * setConfigPath
-         * 
-         * @access  public
-         * @param   string $path
-         * @return  void
-         */
-        public static function setConfigPath($path)
-        {
-            self::$_configPath = $path;
+            static::_secureRequest();
         }
     }
 
-    // Config
+    // Config path loading
     $info = pathinfo(__DIR__);
     $parent = ($info['dirname']) . '/' . ($info['basename']);
     $configPath = ($parent) . '/config.inc.php';
-    if (is_file($configPath) === true) {
-        BasicSecure::setConfigPath($configPath);
-    }
+    Redirect::setConfigPath($configPath);
