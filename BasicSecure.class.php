@@ -6,7 +6,7 @@
     /**
      * BasicSecure
      * 
-     * HTTP basic secure plugin for TurtlePHP.
+     * Basic Secure plugin for TurtlePHP.
      * 
      * @author  Oliver Nassar <onassar@gmail.com>
      * @abstract
