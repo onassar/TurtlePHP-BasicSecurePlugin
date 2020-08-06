@@ -226,4 +226,4 @@
     $info = pathinfo(__DIR__);
     $parent = ($info['dirname']) . '/' . ($info['basename']);
     $configPath = ($parent) . '/config.inc.php';
-    Redirect::setConfigPath($configPath);
+    \Plugin\Redirect::setConfigPath($configPath);
