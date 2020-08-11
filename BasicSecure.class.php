@@ -93,9 +93,9 @@
         protected static function _isBypassedPath(): bool
         {
             $configData = static::_getConfigData();
-            $excludedPatterns = $configData['excludedPatterns'];
-            foreach ($excludedPatterns as $excludedPattern) {
-                if (preg_match($excludedPattern, $_SERVER['SCRIPT_URL']) > 0) {
+            $excludePatterns = $configData['excludePatterns'];
+            foreach ($excludePatterns as $excludePattern) {
+                if (preg_match($excludePattern, $_SERVER['SCRIPT_URL']) > 0) {
                     return true;
                 }
             }
