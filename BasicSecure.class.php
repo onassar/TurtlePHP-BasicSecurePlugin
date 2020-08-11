@@ -1,7 +1,7 @@
 <?php
 
     // namespace
-    namespace Plugin;
+    namespace TurtlePHP\Plugin;
 
     /**
      * BasicSecure
@@ -226,4 +226,4 @@
     $info = pathinfo(__DIR__);
     $parent = ($info['dirname']) . '/' . ($info['basename']);
     $configPath = ($parent) . '/config.inc.php';
-    \Plugin\Redirect::setConfigPath($configPath);
+    \TurtlePHP\Plugin\Redirect::setConfigPath($configPath);

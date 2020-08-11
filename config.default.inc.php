@@ -1,12 +1,6 @@
 <?php
 
     /**
-     * Namespace
-     * 
-     */
-    namespace Plugin\BasicSecure;
-
-    /**
      * Plugin Config Data
      * 
      */
@@ -22,4 +16,4 @@
      * 
      */
     $key = 'TurtlePHP-BasicSecurePlugin';
-    \Plugin\Config::add($key, $pluginConfigData);
+    TurtlePHP\Plugin\Config::set($key, $pluginConfigData);
