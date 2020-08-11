@@ -6,6 +6,6 @@ TurtlePHP-BasicSecurePlugin
 require_once APP . '/plugins/TurtlePHP-BasePlugin/Base.class.php';
 require_once APP . '/plugins/TurtlePHP-BasicSecurePlugin/BasicSecure.class.php';
 $path = APP . '/config/plugins/basicSecure.inc.php';
-Plugin\BasicSecure::setConfigPath($path);
-Plugin\BasicSecure::init();
+TurtlePHP\Plugin\BasicSecure::setConfigPath($path);
+TurtlePHP\Plugin\BasicSecure::init();
 ```
