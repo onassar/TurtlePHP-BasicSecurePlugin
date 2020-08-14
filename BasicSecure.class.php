@@ -78,7 +78,7 @@
          */
         protected static function _getErrorViewMarkup(): string
         {
-            $errorViewPath = CORE . '/error.inc.php';
+            $errorViewPath = \TurtlePHP\Application::getErrorViewPath();
             $content = file_get_contents($errorViewPath);
             return $content;
         }
