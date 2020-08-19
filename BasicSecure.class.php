@@ -33,6 +33,15 @@
         protected static $_initiated = false;
 
         /**
+         * _renderedErrorView
+         * 
+         * @access  protected
+         * @var     null|string (default: null)
+         * @static
+         */
+        protected static $_renderedErrorView = null;
+
+        /**
          * _autoSecureRequest
          * 
          * @access  protected
@@ -79,8 +88,8 @@
         protected static function _getErrorViewMarkup(): string
         {
             $errorViewPath = \TurtlePHP\Application::getErrorViewPath();
-            $content = file_get_contents($errorViewPath);
-            return $content;
+            $response = \TurtlePHP\Application::renderPath($errorViewPath);
+            return $response;
         }
 
         /**
@@ -126,9 +135,33 @@
          */
         protected static function _loadErrorView(): void
         {
-            $content = static::_getErrorViewMarkup();
+            $content = static::$_renderedErrorView;
             echo $content;
             exit(0);
+        }
+
+        /**
+         * _renderErrorView
+         * 
+         * Renders the error view upon plugin init call to ensure that the
+         * markup is available if and when it's needed.
+         * 
+         * This needs to be done _before_ any possible failure due to a header
+         * flushing "race condition" (sort of) whereby:
+         * 1. If the error view is simply loaded using file_get_contents, the
+         *    proper rendering isn't completed: https://i.imgur.com/N62HtaB.png
+         * 2. If the error view is rendered in the same flow that security
+         *    header is sent to the browser, that header flushing prevents the
+         *    actual username/password prompt from even showing up.
+         * 
+         * @access  protected
+         * @static
+         * @return  void
+         */
+        protected static function _renderErrorView(): void
+        {
+            $markup = static::_getErrorViewMarkup();
+            static::$_renderedErrorView = $markup;
         }
 
         /**
@@ -195,6 +228,7 @@
         /**
          * init
          * 
+         * @note    Ordered
          * @access  public
          * @static
          * @return  bool
@@ -205,6 +239,7 @@
                 return false;
             }
             parent::init();
+            static::_renderErrorView();
             static::_autoSecureRequest();
             return true;
         }
