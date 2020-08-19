@@ -141,6 +141,19 @@
         }
 
         /**
+         * _rejectFailedBasicSecureRequest
+         * 
+         * @access  protected
+         * @static
+         * @return  void
+         */
+        protected static function _rejectFailedBasicSecureRequest(): void
+        {
+            static::_sendBasicSecureHeaders();
+            static::_loadErrorView();
+        }
+
+        /**
          * _renderErrorView
          * 
          * Renders the error view upon plugin init call to ensure that the
@@ -162,19 +175,6 @@
         {
             $markup = static::_getErrorViewMarkup();
             static::$_renderedErrorView = $markup;
-        }
-
-        /**
-         * _rejectFailedBasicSecureRequest
-         * 
-         * @access  protected
-         * @static
-         * @return  void
-         */
-        protected static function _rejectFailedBasicSecureRequest(): void
-        {
-            static::_sendBasicSecureHeaders();
-            static::_loadErrorView();
         }
 
         /**
