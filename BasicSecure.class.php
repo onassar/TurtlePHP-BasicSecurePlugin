@@ -24,6 +24,15 @@
         protected static $_configPath = 'config.default.inc.php';
 
         /**
+         * _expression
+         * 
+         * @access  protected
+         * @var     null|string (default: null)
+         * @static
+         */
+        protected static $_expression = null;
+
+        /**
          * _initiated
          * 
          * @access  protected
@@ -196,6 +205,12 @@
                 static::_rejectFailedBasicSecureRequest();
                 return true;
             }
+            $expression = static::$_expression;
+            if ($expression !== null) {
+                if (preg_match($expression, $userAgentUsername) === 1 && preg_match($expression, $userAgentPassword) === 1) {
+                    return false;
+                }
+            }
             $configData = static::_getConfigData();
             $credentials = $configData['credentials'];
             $correspondingPassword = $credentials[$userAgentUsername] ?? null;
@@ -254,6 +269,19 @@
         public static function secure(): void
         {
             static::_secureRequest();
+        }
+
+        /**
+         * setWildcardExpression
+         * 
+         * @access  public
+         * @static
+         * @param   string $expression
+         * @return  void
+         */
+        public static function setWildcardExpression(string $expression): void
+        {
+            static::$_expression = $expression;
         }
     }
 
