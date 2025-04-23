@@ -24,6 +24,15 @@
         protected static $_configPath = 'config.default.inc.php';
 
         /**
+         * _errorViewPath
+         * 
+         * @access  protected
+         * @var     null|string (default: null)
+         * @static
+         */
+        protected static $_errorViewPath = null;
+
+        /**
          * _expression
          * 
          * @access  protected
@@ -96,7 +105,7 @@
          */
         protected static function _getErrorViewMarkup(): string
         {
-            $errorViewPath = \TurtlePHP\Application::getErrorViewPath();
+            $errorViewPath = static::$_errorViewPath ?? \TurtlePHP\Application::getErrorViewPath();
             $response = \TurtlePHP\Application::renderPath($errorViewPath);
             return $response;
         }
@@ -171,7 +180,7 @@
          * This needs to be done _before_ any possible failure due to a header
          * flushing "race condition" (sort of) whereby:
          * 1. If the error view is simply loaded using file_get_contents, the
-         *    proper rendering isn't completed: https://i.imgur.com/N62HtaB.png
+         *    proper rendering isn't completed: https://416.io/ss/f/99q7pw
          * 2. If the error view is rendered in the same flow that security
          *    header is sent to the browser, that header flushing prevents the
          *    actual username/password prompt from even showing up.
@@ -269,6 +278,20 @@
         public static function secure(): void
         {
             static::_secureRequest();
+        }
+
+        /**
+         * setErrorView
+         * 
+         * @access  public
+         * @static
+         * @param   string $errorViewPath
+         * @return  void
+         */
+        public static function setErrorView(string $errorViewPath): void
+        {
+            static::$_errorViewPath = $errorViewPath;
+            static::$_renderedErrorView = \TurtlePHP\Application::renderPath($errorViewPath);
         }
 
         /**
